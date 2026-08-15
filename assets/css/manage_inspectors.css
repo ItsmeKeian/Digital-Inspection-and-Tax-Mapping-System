@@ -1,0 +1,72 @@
+/* ── STAT CARDS ── */
+.mi-stat-card {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mi-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.mi-stat-icon {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.mi-stat-icon i { font-size: 22px; color: #fff; }
+
+.mi-stat-val {
+    font-size: 28px; font-weight: 800;
+    color: #1C1400; line-height: 1;
+    letter-spacing: -0.5px;
+}
+
+.mi-stat-label {
+    font-size: 12px; color: #6B7280;
+    margin-top: 3px; font-weight: 500;
+}
+
+/* ── USER AVATAR IN TABLE ── */
+.user-avatar-table {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C8960C, #F5C518);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: #1C1400;
+    flex-shrink: 0;
+}
+
+/* ── "YOU" BADGE ── */
+.badge-me {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 700;
+    background: #FDF6E3;
+    color: #C8960C;
+    border: 1px solid rgba(200,150,12,0.25);
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* ── ALERT MESSAGE ── */
+.alert-msg {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
