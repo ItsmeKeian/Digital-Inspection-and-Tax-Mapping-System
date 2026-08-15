@@ -26,6 +26,7 @@ try {
     <link href="assets/css/dashboard.css" rel="stylesheet">
     <link href="assets/css/business.css" rel="stylesheet">
     <link href="assets/css/inspections.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -482,6 +483,7 @@ try {
 
 <script src="assets/js/jquery-4.0.0.min.js"></script>
 <script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="js/inspections.js"></script>
 <script>
     document.getElementById("sidebarToggle").addEventListener("click", function(){

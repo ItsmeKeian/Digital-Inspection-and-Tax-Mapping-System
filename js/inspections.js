@@ -62,7 +62,7 @@ function loadInspections(search="", barangay="", type="", date=""){
 function loadBusinessOptions(){
     $.get("php/get/get_businesses.php", {}, function(data){
         let rows = JSON.parse(data);
-        let html = '<option value="">— Select Business —</option>';
+        let html = '<option value="">— Type to search business —</option>';
         rows.forEach(r => {
             html += `<option value="${r.id}"
                 data-name="${r.business_name}"
@@ -72,11 +72,27 @@ function loadBusinessOptions(){
             </option>`;
         });
         $("#selectBusiness").html(html);
+
+        // Initialize Select2
+        $("#selectBusiness").select2({
+            placeholder: "Type to search business...",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $("#addInspectionModal"),
+            language: {
+                noResults: function(){
+                    return "No business found";
+                },
+                searching: function(){
+                    return "Searching...";
+                }
+            }
+        });
     });
 }
 
-// Auto-fill owner and barangay on business select
-$(document).on("change", "#selectBusiness", function(){
+// Auto-fill owner and barangay on business select (Select2)
+$(document).on("select2:select", "#selectBusiness", function(e){
     let selected = $(this).find(":selected");
     let id = $(this).val();
     $("#inspection_business_id").val(id);
@@ -85,9 +101,21 @@ $(document).on("change", "#selectBusiness", function(){
     $("#barangay").val(selected.data("barangay"));
 });
 
+// Clear fields when selection is cleared
+$(document).on("select2:clear", "#selectBusiness", function(){
+    $("#inspection_business_id").val("");
+    $("#business_name").val("");
+    $("#owner_name").val("");
+    $("#barangay").val("");
+});
+
 function openAddModal(){
     $("#inspectionForm")[0].reset();
     $("#inspection_id").val("");
+    // Reset Select2
+    if($("#selectBusiness").hasClass("select2-hidden-accessible")){
+        $("#selectBusiness").val("").trigger("change");
+    }
     $("#inspectionForm").attr("action", "php/create/create_inspection.php");
     new bootstrap.Modal(document.getElementById("addInspectionModal")).show();
 }
