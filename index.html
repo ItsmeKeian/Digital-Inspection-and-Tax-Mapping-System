@@ -3,100 +3,489 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Inspection and Tax Mapping System - Login</title>
+    <title>DITMS — Login</title>
     <link href="assets/img/borlogo.png" rel="icon">
-    
-    <!-- Bootstrap 5 CSS -->
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="assets/css/index.css">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="assets/css/all.min.css">
-    
-   
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0900;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 900px;
+            min-height: 540px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+        }
+
+        /* ── LEFT PANEL ── */
+        .left-panel {
+            background: #1C1400;
+            padding: 2.5rem 2.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -80px; right: -80px;
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            background: rgba(200,150,12,0.07);
+            pointer-events: none;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: -60px;
+            width: 260px; height: 260px;
+            border-radius: 50%;
+            background: rgba(200,150,12,0.04);
+            pointer-events: none;
+        }
+
+        /* Brand */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            background: rgba(200,150,12,0.15);
+            border: 1px solid rgba(200,150,12,0.3);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .brand-icon img {
+            width: 32px; height: 32px;
+            object-fit: contain;
+        }
+
+        .brand-icon i { font-size: 20px; color: #C8960C; }
+
+        .brand-text .name {
+            font-size: 14px; font-weight: 700;
+            color: #fff; line-height: 1.2;
+        }
+
+        .brand-text .sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 2px;
+        }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #C8960C;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .hero-tag::before {
+            content: '';
+            width: 28px; height: 1.5px;
+            background: #C8960C;
+            flex-shrink: 0;
+        }
+
+        .hero h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 span { color: #C8960C; }
+
+        .hero p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            line-height: 1.75;
+        }
+
+        /* Bottom */
+        .left-bottom {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .online-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #22C55E;
+            flex-shrink: 0;
+        }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel {
+            background: #fff;
+            padding: 3rem 2.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-head {
+            margin-bottom: 2rem;
+        }
+
+        .form-head h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1C1400;
+            margin-bottom: 5px;
+        }
+
+        .form-head p {
+            font-size: 13px;
+            color: #9CA3AF;
+        }
+
+        /* Error */
+        #errorMsg {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #B91C1C;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Fields */
+        .field { margin-bottom: 1.2rem; }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 7px;
+        }
+
+        .field-wrap { position: relative; }
+
+        .field-wrap .fic {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            color: #D1D5DB;
+            pointer-events: none;
+        }
+
+        .field-wrap input {
+            width: 100%;
+            height: 48px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 10px;
+            background: #F9FAFB;
+            padding: 0 44px 0 42px;
+            font-size: 14px;
+            color: #1C1400;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .field-wrap input::placeholder { color: #C4C4C4; }
+
+        .field-wrap input:focus {
+            border-color: #C8960C;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(200,150,12,0.1);
+        }
+
+        .eye-btn {
+            position: absolute;
+            right: 14px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            cursor: pointer;
+            color: #D1D5DB;
+            font-size: 15px;
+            padding: 0;
+            transition: color 0.15s;
+        }
+
+        .eye-btn:hover { color: #C8960C; }
+
+        /* Submit */
+        .btn-login {
+            width: 100%;
+            height: 50px;
+            background: #C8960C;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 0.5rem;
+            margin-bottom: 1.75rem;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .btn-login:hover { background: #b8860b; }
+        .btn-login:active { transform: scale(0.98); }
+        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .btn-login .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Footer */
+        .form-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 1.25rem;
+            border-top: 1px solid #F3F4F6;
+        }
+
+        .form-footer-left {
+            font-size: 11px;
+            color: #D1D5DB;
+            line-height: 1.5;
+        }
+
+        .form-footer-left strong {
+            color: #9CA3AF;
+            font-weight: 600;
+        }
+
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #9CA3AF;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 50px;
+            padding: 5px 12px;
+        }
+
+        .secure-badge i {
+            font-size: 13px;
+            color: #22C55E;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .login-wrapper {
+                grid-template-columns: 1fr;
+                max-width: 420px;
+            }
+            .left-panel { display: none; }
+            .right-panel { padding: 2.5rem 1.75rem; }
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <!-- Logo Section -->
-            <div class="logo-section">
-                <div class="logo-icon">
-                    <i class="fas fa-building-columns"></i>
-                </div>
-                <h1 class="system-title mb-0">Digital Inspection and Tax Mapping System</h1>
-                <p class="system-subtitle mb-0">Business Permits and Licensing Office - Borongan City</p>
+
+<div class="login-wrapper">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="brand">
+            <div class="brand-icon">
+                <img src="assets/img/borlogo.png" alt="Borongan City"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <i class="fas fa-map-marked-alt" style="display:none"></i>
             </div>
-
-            <!-- Form Section -->
-            <div class="form-section">
-                <form id="loginForm">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" name="username" id="username" placeholder="Username" required>
-                        <label for="username">
-                            <i class="fas fa-user me-2"></i>Username
-                        </label>
-                    </div>
-
-                    <div class="form-floating">
-                        
-                            <input type="password" class="form-control" name="password" id="password" placeholder="Password" required>
-                            <label for="username">
-                                <i class="fas fa-lock me-2"></i>Password
-                            </label>
-                          
-                   
-                    </div>
-
-                    <button type="submit" class="btn btn-login text-white mb-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </button>
-                </form>
-
-                <div class="footer-text">
-                    <i class="fas fa-shield-alt me-1"></i>
-                    For authorized personnel only
-                </div>
+            <div class="brand-text">
+                <div class="name">DITMS</div>
+                <div class="sub">Borongan City, Eastern Samar</div>
             </div>
+        </div>
+
+        <div class="hero">
+            <div class="hero-tag">Official BPLO Portal</div>
+            <h1>Digital Inspection<br>and <span>Tax Mapping</span><br>System</h1>
+            <p>A centralized platform for the Business Permits and Licensing Office of Borongan City for managing business inspections, tax mapping, and compliance records.</p>
+        </div>
+
+        <div class="left-bottom">
+            <div class="online-dot"></div>
+            System Online &nbsp;·&nbsp; Borongan City BPLO &nbsp;·&nbsp; 2026
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/jquery-4.0.0.min.js"></script>
-    
-    <script>
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
 
+        <div class="form-head">
+            <h2>Welcome back</h2>
+            <p>Sign in to access your dashboard</p>
+        </div>
 
-              $("#loginForm").submit(function(e){
-                e.preventDefault();
+        <!-- Error message -->
+        <div id="errorMsg">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorText"></span>
+        </div>
 
-               
-                $.ajax({
-                    url: "php/login.php",
-                    type: "POST",
-                    data: $(this).serialize(),
+        <form id="loginForm" autocomplete="off">
 
-                   
+            <div class="field">
+                <label for="username">Username</label>
+                <div class="field-wrap">
+                    <i class="fas fa-user fic"></i>
+                    <input type="text" id="username" name="username"
+                           placeholder="Enter your username" required autocomplete="username">
+                </div>
+            </div>
 
-                    success: function(res){
-                        
-                        console.log(res)
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="field-wrap">
+                    <i class="fas fa-lock fic"></i>
+                    <input type="password" id="password" name="password"
+                           placeholder="Enter your password" required autocomplete="current-password">
+                    <button type="button" class="eye-btn" id="eyeBtn" aria-label="Toggle password">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
 
-                        let data = JSON.parse(res);
+            <button type="submit" class="btn-login" id="loginBtn">
+                <div class="spinner" id="spinner"></div>
+                <i class="fas fa-sign-in-alt" id="loginIcon"></i>
+                <span id="loginText">Sign In</span>
+            </button>
 
-                        if(data.status === "success"){
+        </form>
 
-                            window.location = "dashboard.php";
+        <div class="form-footer">
+            <div class="form-footer-left">
+                <strong>DITMS</strong> · Business Permits and Licensing Office<br>
+                Borongan City · Authorized Personnel Only
+            </div>
+            <div class="secure-badge">
+                <i class="fas fa-shield-alt"></i>
+                Secure
+            </div>
+        </div>
 
-                        } else {
+    </div>
+</div>
 
-                            $("#msg").text(data.message);
-                        }
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/jquery-4.0.0.min.js"></script>
+<script>
+    // Show/hide password
+    $("#eyeBtn").on("click", function () {
+        var inp = $("#password");
+        var icon = $("#eyeIcon");
+        if (inp.attr("type") === "password") {
+            inp.attr("type", "text");
+            icon.removeClass("fa-eye").addClass("fa-eye-slash");
+        } else {
+            inp.attr("type", "password");
+            icon.removeClass("fa-eye-slash").addClass("fa-eye");
+        }
+    });
+
+    // Login submit
+    $("#loginForm").submit(function (e) {
+        e.preventDefault();
+
+        $("#spinner").show();
+        $("#loginIcon").hide();
+        $("#loginText").text("Signing in...");
+        $("#loginBtn").prop("disabled", true);
+        $("#errorMsg").hide();
+
+        $.ajax({
+            url: "php/login.php",
+            type: "POST",
+            data: $(this).serialize(),
+            success: function (res) {
+                var data = JSON.parse(res);
+                if (data.status === "success") {
+                    if (data.role === "admin") {
+                        window.location = "dashboard.php";
+                    } else {
+                        window.location = "inspector_dashboard.php";
                     }
-                });
-            });
-
-
-    </script>
+                } else {
+                    $("#errorText").text(data.message);
+                    $("#errorMsg").css("display", "flex");
+                    $("#spinner").hide();
+                    $("#loginIcon").show();
+                    $("#loginText").text("Sign In");
+                    $("#loginBtn").prop("disabled", false);
+                }
+            },
+            error: function () {
+                $("#errorText").text("Something went wrong. Please try again.");
+                $("#errorMsg").css("display", "flex");
+                $("#spinner").hide();
+                $("#loginIcon").show();
+                $("#loginText").text("Sign In");
+                $("#loginBtn").prop("disabled", false);
+            }
+        });
+    });
+</script>
 </body>
 </html>
