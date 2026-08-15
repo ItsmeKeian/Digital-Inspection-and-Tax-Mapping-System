@@ -1,295 +1,397 @@
 <?php
 session_start();
-
 if(!isset($_SESSION["user"])){
     header("Location: index.html");
     exit();
 }
+if($_SESSION["role"] !== "admin"){
+    header("Location: dashboard.php");
+    exit();
+}
+$role     = "admin";
+$fullname = $_SESSION["full_name"] ?? $_SESSION["user"] ?? "Administrator";
+$username = $_SESSION["user"] ?? "";
+$initials = strtoupper(substr($fullname, 0, 1));
+
+require "php/dbconnect.php";
+try {
+    $stmt = $conn->query("SELECT * FROM system_settings LIMIT 1");
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch(Exception $e){ $settings = []; }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Inspection and Tax Mapping System</title>
+    <title>DITMS — Settings</title>
     <link href="assets/img/borlogo.png" rel="icon">
-    
-    <!-- Bootstrap 5 CSS -->
- 
-
-    <link href="assets/css/dashboard.css" rel="stylesheet">
-    
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/settings.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    
-    
-  
+    <link href="assets/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/dashboard.css" rel="stylesheet">
+    <link href="assets/css/business.css" rel="stylesheet">
+    <link href="assets/css/settings.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <h3><i class="fas fa-shield-alt me-2"></i>DITMS</h3>
-            <p>Digital Inspection and Tax Mapping System</p>
-        </div>
-        <nav class="sidebar-nav mt-3">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php">
-                        <i class="fas fa-tachometer-alt"></i>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="business.php">
-                    <i class="fas fa-store"></i> Businesses
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="inspections.php">
-                    <i class="fas fa-search"></i> Inspections
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="taxmapping.php">
-                    <i class="fas fa-map-marked-alt"></i> Tax Mapping
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="reports.php">
-                    <i class="fas fa-chart-bar"></i> Reports
-                    </a>
-                </li>
 
-                <li class="nav-item">
-                    <a class="nav-link active" href="settings.php">
-                    <i class="fas fa-gear"></i> Settings
-                    </a>
-                </li>
-                <li class="nav-item border-top mt-2 pt-2">
-                    <a class="nav-link" href="php/logout.php">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
-                    </a>
-                </li>
-            </ul>
-        </nav>
+<!-- ── SIDEBAR ── -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+            <img src="assets/img/borlogo.png" alt="DITMS"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <i class="fas fa-map-marked-alt" style="display:none"></i>
+        </div>
+        <div class="sidebar-brand-text">
+            <div class="name">DITMS</div>
+            <div class="sub">BPLO — Borongan City</div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main Menu</div>
+        <a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="business.php"><i class="fas fa-store"></i> Businesses</a>
+        <a href="inspections.php"><i class="fas fa-search"></i> Inspections</a>
+        <a href="taxmapping.php"><i class="fas fa-map-marked-alt"></i> Tax Mapping</a>
+        <a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a>
+        <div class="sidebar-section-label" style="margin-top:0.5rem">Admin</div>
+        <a href="manage_inspectors.php"><i class="fas fa-users"></i> Manage Inspectors</a>
+        <a href="activity_logs.php"><i class="fas fa-history"></i> Activity Logs</a>
+        <a href="settings.php" class="active"><i class="fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-bottom">
+        <a href="php/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<!-- ── TOP HEADER ── -->
+<header class="top-header">
+    <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="header-title">
+            <i class="fas fa-cog"></i>
+            Settings
+        </div>
+    </div>
+    <div class="dropdown">
+        <a class="user-badge dropdown-toggle" href="#" data-bs-toggle="dropdown" style="text-decoration:none">
+            <div class="user-avatar">
+                <?php if(!empty($settings["logo"])): ?>
+                <img src="uploads/<?= htmlspecialchars($settings["logo"]) ?>" alt=""
+                     onerror="this.outerHTML='<span><?= $initials ?></span>'">
+                <?php else: ?>
+                <?= $initials ?>
+                <?php endif; ?>
+            </div>
+            <div class="user-info">
+                <div class="uname"><?= htmlspecialchars($fullname) ?></div>
+                <div class="urole">Administrator</div>
+            </div>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <div style="padding:10px 14px;border-bottom:1px solid #F3F4F6">
+                    <div style="font-size:13px;font-weight:600;color:#1C1400"><?= htmlspecialchars($fullname) ?></div>
+                    <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">@<?= htmlspecialchars($username) ?></div>
+                    <span class="role-badge role-admin">Administrator</span>
+                </div>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item text-danger" href="php/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        </ul>
+    </div>
+</header>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="main-content">
+
+    <div class="page-header-wrap" style="margin-bottom:1.5rem">
+        <div class="page-title">
+            <h2>Settings</h2>
+            <p>System configuration and account management</p>
+        </div>
     </div>
 
-    <!-- Top Header -->
-    <header class="top-header">
-        <div class="d-flex align-items-center">
-            <button class="sidebar-toggle btn btn-link text-decoration-none d-lg-none me-3">
-                <i class="fas fa-bars fs-4"></i>
-            </button>
-            <h5 class="mb-0 fw-bold text-dark">
-                <i class="fas fa-home me-2"></i>
-                Settings Overview
-            </h5>
-        </div>
-        <div class="d-flex align-items-center">
-            <div class="dropdown">
-                <a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                <img src="uploads/<?= $settings['logo'] ?? 'default.png' ?>"  class="rounded-circle" width="40" height="40" alt="User">
-                    <span class="ms-2 d-none d-md-inline fw-semibold">Administrator</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                </ul>
+    <!-- Top Banner -->
+    <div class="settings-banner">
+        <div class="settings-banner-left">
+            <div class="settings-banner-avatar">
+                <?php if(!empty($settings["logo"])): ?>
+                <img src="uploads/<?= htmlspecialchars($settings["logo"]) ?>" alt="Logo">
+                <?php else: ?>
+                <i class="fas fa-map-marked-alt"></i>
+                <?php endif; ?>
             </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Page Title -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="mb-1 fw-bold text-dark">Digital Inspection and Tax Mapping System</h2>
-                <p class="mb-0 text-muted">Borongan City, Eastern Samar</p>
+                <div class="settings-banner-title">
+                    <?= htmlspecialchars($settings["municipality"] ?? "Borongan City") ?>
+                </div>
+                <div class="settings-banner-sub">
+                    <?= htmlspecialchars($settings["province"] ?? "Eastern Samar") ?> &nbsp;·&nbsp;
+                    Digital Inspection and Tax Mapping System
+                </div>
             </div>
-         
         </div>
+        <div class="settings-banner-right">
+            <div class="banner-stat">
+                <div class="banner-stat-val">v1.0</div>
+                <div class="banner-stat-label">Version</div>
+            </div>
+            <div class="banner-divider"></div>
+            <div class="banner-stat">
+                <div class="banner-stat-val">BPLO</div>
+                <div class="banner-stat-label">Office</div>
+            </div>
+            <div class="banner-divider"></div>
+            <div class="banner-stat">
+                <div class="banner-stat-val"><?= date("Y") ?></div>
+                <div class="banner-stat-label">Year</div>
+            </div>
+        </div>
+    </div>
 
-        <div class="container-fluid px-lg-4 px-md-3">
-       
+    <div class="row g-3">
 
-        <!-- Main Settings Panels -->
-        <div class="row g-4 mb-5">
+        <!-- LEFT COLUMN -->
+        <div class="col-lg-7">
+
             <!-- System Information -->
-            <div class="col-lg-7">
-                <div class="settings-card h-100">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="bi bi-info-circle-fill"></i>
-                        </div>
-                        <div>
-                            <h3 class="h4 mb-1 fw-bold">System Information</h3>
-                            <p class="text-muted mb-0">Configure municipality details</p>
-                        </div>
+            <div class="settings-card mb-3">
+                <div class="settings-section-header">
+                    <div class="settings-section-icon gold">
+                        <i class="fas fa-building"></i>
                     </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Municipality Name</label>
-                            <input type="text" id="municipality" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Province</label>
-                            <input type="text" id="province" class="form-control">
-                        </div>
+                    <div>
+                        <div class="settings-section-title">System Information</div>
+                        <div class="settings-section-sub">Update your municipality details and logo</div>
                     </div>
+                </div>
 
-                    <div class="mt-4">
-                        <label class="form-label">Municipality Logo</label>
-
-                        <div class="logo-upload-area text-center p-4 border rounded"
-                            style="cursor:pointer;"
-                            onclick="document.getElementById('logoInput').click()">
-
-                            <!-- PREVIEW IMAGE -->
-                            <img id="logoPreview"
-                                src=""
-                                style="max-width:150px; display:none; margin-bottom:10px; border-radius:10px;" />
-
-                            <!-- PLACEHOLDER -->
-                            <div id="uploadPlaceholder">
-                                <i class="bi bi-cloud-upload display-4 text-muted mb-3 d-block"></i>
-                                <p class="fw-semibold text-muted mb-2">Click to upload logo</p>
-                                <p class="text-muted small mb-0">PNG, JPG, SVG up to 2MB</p>
-                            </div>
-
-                            <input type="file" id="logoInput" class="d-none" accept="image/*">
-                        </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label-modern">Municipality Name</label>
+                        <input type="text" id="municipality" class="form-control-modern"
+                               placeholder="e.g. Borongan City">
                     </div>
-                    
+                    <div class="col-md-6">
+                        <label class="form-label-modern">Province</label>
+                        <input type="text" id="province" class="form-control-modern"
+                               placeholder="e.g. Eastern Samar">
+                    </div>
+                </div>
 
-                    <div class="mt-5 pt-4 border-top">
-                    <button class="btn btn-primary-gold w-100" onclick="saveSystem()">
-                            <i class="bi bi-save me-2"></i>
-                            Save System Information
-                        </button>
+                <label class="form-label-modern">Municipality Logo</label>
+                <div class="logo-upload-zone" id="logoUploadArea"
+                     onclick="document.getElementById('logoInput').click()"
+                     ondragover="event.preventDefault();this.classList.add('dragover')"
+                     ondragleave="this.classList.remove('dragover')"
+                     ondrop="handleLogoDrop(event)">
+                    <img id="logoPreview" src="" alt="Logo Preview"
+                         style="max-width:100px;max-height:100px;display:none;border-radius:10px;object-fit:contain;margin-bottom:.75rem">
+                    <div id="uploadPlaceholder">
+                        <div class="upload-icon-wrap">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-title">Click to upload or drag & drop</div>
+                        <div class="upload-sub">PNG, JPG, SVG up to 2MB</div>
+                    </div>
+                    <input type="file" id="logoInput" style="display:none" accept="image/*">
+                </div>
+
+                <div id="systemMsg" class="settings-msg" style="display:none"></div>
+
+                <button class="btn-settings-save" onclick="saveSystem()">
+                    <i class="fas fa-save"></i> Save System Information
+                </button>
+            </div>
+
+            <!-- About System -->
+            <div class="settings-card">
+                <div class="settings-section-header">
+                    <div class="settings-section-icon blue">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                        <div class="settings-section-title">About the System</div>
+                        <div class="settings-section-sub">DITMS system information</div>
+                    </div>
+                </div>
+                <div class="about-list">
+                    <div class="about-item">
+                        <div class="about-label"><i class="fas fa-desktop"></i> System Name</div>
+                        <div class="about-val">Digital Inspection and Tax Mapping System</div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-label"><i class="fas fa-tag"></i> Version</div>
+                        <div class="about-val"><span class="version-badge">v1.0.0</span></div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-label"><i class="fas fa-building"></i> Office</div>
+                        <div class="about-val">Business Permits and Licensing Office</div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-label"><i class="fas fa-map-pin"></i> Location</div>
+                        <div class="about-val">Borongan City, Eastern Samar, Philippines</div>
+                    </div>
+                    <div class="about-item">
+                        <div class="about-label"><i class="fas fa-calendar"></i> Year</div>
+                        <div class="about-val"><?= date("Y") ?></div>
                     </div>
                 </div>
             </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="col-lg-5">
 
             <!-- Account Settings -->
-            <div class="col-lg-5">
-                <div class="settings-card h-100">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div>
-                            <h3 class="h4 mb-1 fw-bold">Account Settings</h3>
-                            <p class="text-muted mb-0">Update your account security</p>
-                        </div>
+            <div class="settings-card mb-3">
+                <div class="settings-section-header">
+                    <div class="settings-section-icon green">
+                        <i class="fas fa-user-lock"></i>
                     </div>
-
-                    <form onsubmit="event.preventDefault(); updatePassword();">
-
-                        <div class="mb-3">
-                            <label class="form-label">Current Password</label>
-                            <input type="password" id="current_password" class="form-control" placeholder="Enter current password">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">New Password</label>
-                            <input type="password" id="new_password" class="form-control" placeholder="Enter new password">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Confirm Password</label>
-                            <input type="password" id="confirm_password" class="form-control" placeholder="Confirm new password">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary-gold w-100">
-                            <i class="bi bi-lock-fill me-2"></i>
-                            Update Password
-                        </button>
-
-                    </form>
+                    <div>
+                        <div class="settings-section-title">Account Settings</div>
+                        <div class="settings-section-sub">Change your account password</div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Map Settings -->
-        <div class="row g-4">
-            <div class="col-12">
-                <div class="settings-card">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </div>
-                        <div>
-                            <h3 class="h4 mb-1 fw-bold">Map Settings</h3>
-                            <p class="text-muted mb-0">Configure default map view</p>
-                        </div>
+                <!-- Profile info -->
+                <div class="profile-info-box">
+                    <div class="profile-avatar"><?= $initials ?></div>
+                    <div>
+                        <div style="font-size:14px;font-weight:700;color:#1C1400"><?= htmlspecialchars($fullname) ?></div>
+                        <div style="font-size:12px;color:#9CA3AF">@<?= htmlspecialchars($username) ?></div>
+                        <span class="role-badge role-admin" style="margin-top:4px;display:inline-flex">Administrator</span>
                     </div>
+                </div>
 
-                    <div class="row g-4">
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Default Latitude</label>
-                            <input type="number" step="any" class="form-control" value="14.5995" placeholder="0.0000">
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Default Longitude</label>
-                            <input type="number" step="any" class="form-control" value="120.9842" placeholder="0.0000">
-                        </div>
-                        <div class="col-lg-4 col-md-12">
-                            <label class="form-label">Zoom Level</label>
-                            <input type="range" class="form-range" min="1" max="20" value="13" id="zoomRange">
-                            <input type="number" class="form-control mt-2" value="13" min="1" max="20" id="zoomInput">
-                        </div>
-                    </div>
-
-                    <div class="mt-5 pt-4 border-top">
-                        <button class="btn btn-primary-gold btn-lg w-100">
-                            <i class="bi bi-map-fill me-2"></i>
-                            Save Map Settings
+                <div class="mb-3">
+                    <label class="form-label-modern">Current Password</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="current_password" class="form-control-modern"
+                               placeholder="Enter current password">
+                        <button type="button" class="pw-eye" onclick="togglePw('current_password',this)">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label-modern">New Password</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="new_password" class="form-control-modern"
+                               placeholder="Enter new password">
+                        <button type="button" class="pw-eye" onclick="togglePw('new_password',this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-modern">Confirm New Password</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="confirm_password" class="form-control-modern"
+                               placeholder="Confirm new password">
+                        <button type="button" class="pw-eye" onclick="togglePw('confirm_password',this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="passwordMsg" class="settings-msg" style="display:none"></div>
+
+                <button class="btn-settings-save" onclick="updatePassword()">
+                    <i class="fas fa-lock"></i> Update Password
+                </button>
             </div>
+
+            <!-- Quick Info -->
+            <div class="settings-card">
+                <div class="settings-section-header">
+                    <div class="settings-section-icon amber">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <div class="settings-section-title">System Status</div>
+                        <div class="settings-section-sub">Current session information</div>
+                    </div>
+                </div>
+                <div class="status-list">
+                    <div class="status-item">
+                        <span class="status-label">Status</span>
+                        <span class="status-online"><i class="fas fa-circle"></i> Online</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Logged in as</span>
+                        <span class="status-val"><?= htmlspecialchars($fullname) ?></span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Role</span>
+                        <span class="role-badge role-admin">Administrator</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Database</span>
+                        <span class="status-online"><i class="fas fa-circle"></i> Connected</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Date Today</span>
+                        <span class="status-val"><?= date("F d, Y") ?></span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-        
-      
-    </main>
+</main>
 
+<script src="assets/js/jquery-4.0.0.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="js/settings.js"></script>
+<script>
+document.getElementById("sidebarToggle").addEventListener("click", function(){
+    document.getElementById("sidebar").classList.toggle("open");
+});
 
- 
-    <script src="assets/js/jquery-4.0.0.min.js"></script>
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
-    <script src="js/settings.js"></script>
-    
-    <script>
-        // Sidebar toggle for mobile
-        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').style.transform = 
-                document.querySelector('.sidebar').style.transform === 'translateX(-100%)' ? 
-                'translateX(0)' : 'translateX(-100%)';
-        });
+function togglePw(id, btn){
+    let inp  = document.getElementById(id);
+    let icon = btn.querySelector("i");
+    if(inp.type === "password"){
+        inp.type = "text";
+        icon.className = "fas fa-eye-slash";
+    } else {
+        inp.type = "password";
+        icon.className = "fas fa-eye";
+    }
+}
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(event) {
-            const sidebar = document.querySelector('.sidebar');
-            const toggle = document.querySelector('.sidebar-toggle');
-            
-            if (window.innerWidth <= 992 && 
-                !sidebar.contains(event.target) && 
-                !toggle.contains(event.target)) {
-                sidebar.style.transform = 'translateX(-100%)';
-            }
-        });
+function showMsg(id, msg, type){
+    let el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = "block";
+    el.style.background = type === "success" ? "#D1FAE5" : "#FEE2E2";
+    el.style.color      = type === "success" ? "#065F46" : "#991B1B";
+    el.style.border     = type === "success" ? "1px solid #6EE7B7" : "1px solid #FECACA";
+    setTimeout(function(){ el.style.display = "none"; }, 4000);
+}
 
-
-
-    </script>
+function handleLogoDrop(e){
+    e.preventDefault();
+    document.getElementById("logoUploadArea").classList.remove("dragover");
+    let file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith("image/")){
+        let dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById("logoInput").files = dt.files;
+        let reader = new FileReader();
+        reader.onload = function(ev){
+            $("#logoPreview").attr("src", ev.target.result).show();
+            $("#uploadPlaceholder").hide();
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
 </body>
 </html>
