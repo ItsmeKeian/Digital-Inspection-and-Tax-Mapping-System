@@ -1,37 +1,33 @@
 <?php
 require "../dbconnect.php";
 
-/* GET FILTERS */
 $barangay = $_GET['barangay'] ?? '';
-$status   = $_GET['status'] ?? '';
-$from     = $_GET['from'] ?? '';
-$to       = $_GET['to'] ?? '';
-$search   = $_GET['search'] ?? '';
+$status   = $_GET['status']   ?? '';
+$from     = $_GET['from']     ?? '';
+$to       = $_GET['to']       ?? '';
+$search   = $_GET['search']   ?? '';
 
-/* ================= BASE QUERY ================= */
 $query = "
-SELECT 
+SELECT
     b.id,
     b.business_name,
     b.owner_name,
     b.barangay,
     i.date_of_inspection,
-    f.notice_violation,
-    i.id as inspection_id
+    i.id as inspection_id,
+    f.notice_violation
 FROM businesses b
 
-/* 👉 GET ONLY LATEST INSPECTION */
-LEFT JOIN inspections i 
+LEFT JOIN inspections i
 ON i.id = (
-    SELECT id FROM inspections 
+    SELECT id FROM inspections
     WHERE business_id = b.id
     ORDER BY date_of_inspection DESC
     LIMIT 1
 )
 
-/* 👉 GET FINDINGS PER INSPECTION */
 LEFT JOIN (
-    SELECT 
+    SELECT
         inspection_id,
         MAX(notice_violation) as notice_violation
     FROM findings
@@ -41,99 +37,75 @@ LEFT JOIN (
 WHERE 1=1
 ";
 
-/* ================= FILTERS ================= */
+$params = [];
 
-// Barangay
-if($barangay != ''){
+if(!empty($barangay)){
     $query .= " AND b.barangay = :barangay";
+    $params[':barangay'] = $barangay;
 }
 
-// Date range (apply sa latest inspection only)
-if($from != ''){
+if(!empty($from)){
     $query .= " AND (i.date_of_inspection >= :from OR i.date_of_inspection IS NULL)";
+    $params[':from'] = $from;
 }
 
-if($to != ''){
+if(!empty($to)){
     $query .= " AND (i.date_of_inspection <= :to OR i.date_of_inspection IS NULL)";
+    $params[':to'] = $to;
 }
 
-// Search
-if($search != ''){
+if(!empty($search)){
     $query .= " AND (b.business_name LIKE :search OR b.owner_name LIKE :search)";
+    $params[':search'] = "%$search%";
 }
 
-/* ================= EXECUTE ================= */
+$query .= " ORDER BY i.date_of_inspection DESC, b.business_name ASC";
+
 $stmt = $conn->prepare($query);
-
-if($barangay != ''){
-    $stmt->bindValue(':barangay', $barangay);
-}
-if($from != ''){
-    $stmt->bindValue(':from', $from);
-}
-if($to != ''){
-    $stmt->bindValue(':to', $to);
-}
-if($search != ''){
-    $stmt->bindValue(':search', "%$search%");
-}
-
-$stmt->execute();
+$stmt->execute($params);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* ================= PROCESS STATUS ================= */
+// Determine status per row
 foreach($rows as &$r){
-
     if(!$r['inspection_id']){
         $r['status'] = "Pending";
+    } elseif($r['notice_violation'] == 1){
+        $r['status'] = "Violation";
     } else {
-        if($r['notice_violation'] == 1){
-            $r['status'] = "Violation";
-        } else {
-            $r['status'] = "Inspected";
-        }
+        $r['status'] = "Inspected";
     }
+    // Use inspection_id as the id for view/edit/delete
+    $r['id'] = $r['inspection_id'] ?? $r['id'];
 }
 unset($r);
 
-/* ================= STATUS FILTER ================= */
-if($status != ''){
-    $rows = array_filter($rows, function($r) use ($status){
-        return strtolower($r['status']) == strtolower($status);
-    });
+// Status filter — after status is determined
+if(!empty($status)){
+    $rows = array_values(array_filter($rows, function($r) use ($status){
+        return strcasecmp($r['status'], $status) === 0;
+    }));
 }
 
-/* ================= CHART DATA ================= */
-
-/* MONTHLY (based on latest inspections only) */
+// Chart data
 $months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-$counts = array_fill(0, 12, 0);
+$monthly = array_fill(0, 12, 0);
+$inspected = 0; $pending = 0; $violations = 0;
 
 foreach($rows as $r){
-    if($r['date_of_inspection']){
-        $m = date("n", strtotime($r['date_of_inspection']));
-        $counts[$m - 1]++;
+    if(!empty($r['date_of_inspection'])){
+        $m = (int)date("n", strtotime($r['date_of_inspection']));
+        $monthly[$m - 1]++;
     }
+    if($r['status'] === "Inspected")  $inspected++;
+    if($r['status'] === "Pending")    $pending++;
+    if($r['status'] === "Violation")  $violations++;
 }
 
-/* ================= STATUS COUNTS ================= */
-
-$inspected = 0;
-$pending = 0;
-$violations = 0;
-
-foreach($rows as $r){
-    if($r['status'] == "Inspected") $inspected++;
-    if($r['status'] == "Pending") $pending++;
-    if($r['status'] == "Violation") $violations++;
-}
-
-/* ================= RETURN ================= */
 echo json_encode([
-    "rows" => array_values($rows),
-    "months" => $months,
-    "monthly" => $counts,
-    "inspected" => $inspected,
-    "pending" => $pending,
+    "rows"       => array_values($rows),
+    "months"     => $months,
+    "monthly"    => $monthly,
+    "inspected"  => $inspected,
+    "pending"    => $pending,
     "violations" => $violations
 ]);

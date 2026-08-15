@@ -1,136 +1,217 @@
 $(document).ready(function(){
     loadReports();
+
+    // Live search
+    $("#searchReports").on("keyup", function(){
+        loadReports();
+    });
+
+    // Filter changes
+    $("#filterBarangay, #filterStatus, #fromDate, #toDate").on("change", function(){
+        loadReports();
+    });
 });
 
 let lineChart, pieChart;
 
-/* LOAD REPORTS */
 function loadReports(){
-
     $.get("php/get/get_reports.php", {
         barangay: $("#filterBarangay").val(),
-        status: $("#filterStatus").val(),
-        from: $("#fromDate").val(),
-        to: $("#toDate").val(),
-        search: $("#searchReports").val()
+        status:   $("#filterStatus").val(),
+        from:     $("#fromDate").val(),
+        to:       $("#toDate").val(),
+        search:   $("#searchReports").val()
     }, function(data){
-
         let d = JSON.parse(data);
-
         renderTable(d.rows);
         renderCharts(d);
-
+        $("#resultCount").text(d.rows.length + " record(s) found");
     });
-
 }
 
-/* TABLE */
+/* ── TABLE ── */
 function renderTable(rows){
-
     let html = "";
 
-    if(rows.length === 0){
-        html = `<tr><td colspan="5" class="text-center">No data</td></tr>`;
+    if(!rows || rows.length === 0){
+        html = `<tr><td colspan="6" class="table-empty">
+            <i class="fas fa-chart-bar"></i>
+            <span>No records found for the selected filters</span>
+        </td></tr>`;
+        $("#reportTableBody").html(html);
+        return;
     }
 
     rows.forEach(r => {
+        let statusBadge = getStatusBadge(r.status);
 
-        html += `
-        <tr>
-            <td>${r.business_name}</td>
-            <td>${r.owner_name}</td>
-            <td>${r.barangay}</td>
-            <td>${r.date_of_inspection ?? "-"}</td>
-            <td>${getStatusBadge(r.status)}</td>
-        </tr>
-        `;
+        // Notice of Violation button — only for Violation status
+        let noticeBtn = "";
+        if(r.status === "Violation"){
+            noticeBtn = `<a class="btn-notice-violation"
+                href="php/view/notice_of_violation.php?id=${r.id}"
+                target="_blank" title="Generate Notice of Violation">
+                <i class="fas fa-file-alt"></i> Notice
+            </a>`;
+        }
+
+        html += `<tr>
+            <td><strong>${r.business_name}</strong></td>
+            <td>${r.owner_name || "—"}</td>
+            <td><i class="fas fa-map-pin" style="color:#C8960C;margin-right:4px"></i>${r.barangay || "—"}</td>
+            <td>${r.date_of_inspection || "—"}</td>
+            <td>${statusBadge}</td>
+            <td style="white-space:nowrap">
+                <button class="tbl-btn tbl-btn-view" title="View"
+                    onclick="viewReport(${r.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="tbl-btn tbl-btn-edit" title="Edit"
+                    onclick="editReport(${r.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="tbl-btn tbl-btn-delete" title="Delete"
+                    onclick="deleteReport(${r.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+                ${noticeBtn}
+            </td>
+        </tr>`;
     });
 
     $("#reportTableBody").html(html);
 }
 
-/* STATUS BADGE */
+/* ── STATUS BADGE ── */
 function getStatusBadge(status){
-
-    if(status === "Inspected"){
-        return '<span class="badge bg-success">Inspected</span>';
-    }
-    if(status === "Pending"){
-        return '<span class="badge bg-warning text-dark">Pending</span>';
-    }
-    if(status === "Violation"){
-        return '<span class="badge bg-danger">Violation</span>';
-    }
+    if(status === "Inspected")
+        return '<span class="badge-report-inspected"><i class="fas fa-check-circle"></i> Inspected</span>';
+    if(status === "Pending")
+        return '<span class="badge-report-pending"><i class="fas fa-clock"></i> Pending</span>';
+    if(status === "Violation")
+        return '<span class="badge-report-violation"><i class="fas fa-exclamation-circle"></i> Violation</span>';
+    return '<span class="badge-report-pending">—</span>';
 }
 
-/* CHARTS */
+/* ── CHARTS ── */
 function renderCharts(d){
-
     if(lineChart) lineChart.destroy();
-    if(pieChart) pieChart.destroy();
+    if(pieChart)  pieChart.destroy();
 
-    // LINE
+    // Line chart
     lineChart = new Chart(document.getElementById("reportLineChart"), {
-        type: 'line',
+        type: "line",
         data: {
             labels: d.months,
             datasets: [{
                 label: "Inspections",
                 data: d.monthly,
-                borderColor: "#D4AF37",
-                backgroundColor: "rgba(212,175,55,0.1)",
-                fill: true
+                borderColor: "#C8960C",
+                backgroundColor: function(context){
+                    let chart = context.chart;
+                    let {ctx, chartArea} = chart;
+                    if(!chartArea) return "transparent";
+                    let gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                    gradient.addColorStop(0, "rgba(200,150,12,0.18)");
+                    gradient.addColorStop(1, "rgba(200,150,12,0)");
+                    return gradient;
+                },
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2.5,
+                pointBackgroundColor: "#C8960C",
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "#1C1400",
+                    titleColor: "#C8960C",
+                    bodyColor: "#fff",
+                    padding: 10,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: "#F3F4F6", drawBorder: false },
+                    ticks: { color: "#9CA3AF", font: { size: 11 } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: "#9CA3AF", font: { size: 11 } }
+                }
+            }
         }
     });
 
-    // PIE
+    // Doughnut chart
     pieChart = new Chart(document.getElementById("reportPieChart"), {
-        type: 'pie',
+        type: "doughnut",
         data: {
-            labels: ['Inspected','Pending','Violation'],
+            labels: ["Inspected", "Pending", "Violation"],
             datasets: [{
                 data: [d.inspected, d.pending, d.violations],
-                backgroundColor: [
-                    "#C9A227",
-                    "#D4AF37",
-                    "#E5C76B"
-                ],
-                borderColor: "#fff",
-                borderWidth: 2
+                backgroundColor: ["#C8960C", "#F5C518", "#EF4444"],
+                borderWidth: 0,
+                hoverOffset: 6
             }]
         },
         options: {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'top'
+                    position: "bottom",
+                    labels: {
+                        font: { size: 12 },
+                        padding: 14,
+                        usePointStyle: true,
+                        color: "#6B7280"
+                    }
+                },
+                tooltip: {
+                    backgroundColor: "#1C1400",
+                    titleColor: "#C8960C",
+                    bodyColor: "#fff",
+                    padding: 10,
+                    cornerRadius: 8
                 }
-            }
+            },
+            cutout: "65%"
         }
     });
-
 }
 
+/* ── ACTIONS ── */
+function viewReport(id){
+    window.open("php/view/view_inspection.php?id=" + id, "_blank");
+}
 
+function editReport(id){
+    window.location = "inspections.php?edit=" + id;
+}
 
-$("#filterBarangay, #filterStatus, #fromDate, #toDate").on("change", loadReports);
-$("#searchReports").on("keyup", loadReports);
+function deleteReport(id){
+    if(!confirm("Delete this inspection record? This cannot be undone.")) return;
+    $.post("php/delete/delete_inspection.php", { id }, function(){
+        loadReports();
+    });
+}
 
-
-// export reports
 function exportReports(){
-
     let params = new URLSearchParams({
         barangay: $("#filterBarangay").val(),
-        status: $("#filterStatus").val(),
-        from: $("#fromDate").val(),
-        to: $("#toDate").val(),
-        search: $("#searchReports").val()
+        status:   $("#filterStatus").val(),
+        from:     $("#fromDate").val(),
+        to:       $("#toDate").val(),
+        search:   $("#searchReports").val()
     });
-
     window.open("php/export/export_reports.php?" + params.toString(), "_blank");
 }
