@@ -1,3 +1,7 @@
+const ROWS_PER_PAGE = 7;
+let currentPage = 1;
+let allInspectionRows = [];
+
 $(document).ready(function(){
     loadInspections();
     loadBusinessOptions();
@@ -5,58 +9,103 @@ $(document).ready(function(){
 
 function loadInspections(search="", barangay="", type="", date=""){
     $.get("php/get/get_inspections.php", { search, barangay, type, date }, function(data){
-        let rows = JSON.parse(data);
-        let html = "";
-
-        if(!rows.length){
-            html = `<tr><td colspan="8" class="table-empty">
-                <i class="fas fa-search"></i>
-                <span>No inspection records found</span>
-            </td></tr>`;
-        } else {
-            rows.forEach(r => {
-
-                // Status badge
-                let statusMap = {
-                    "Existing":     '<span class="badge-active"><i class="fas fa-circle"></i> Active</span>',
-                    "New":          '<span class="badge-new-status"><i class="fas fa-circle"></i> New</span>',
-                    "Unregistered": '<span class="badge-unregistered"><i class="fas fa-circle"></i> Unregistered</span>',
-                    "Closed":       '<span class="badge-closed"><i class="fas fa-circle"></i> Closed</span>',
-                    "Transferred":  '<span class="badge-transferred"><i class="fas fa-circle"></i> Transferred</span>',
-                };
-                let statusBadge = statusMap[r.operation_status] || '<span class="badge-active"><i class="fas fa-circle"></i> Active</span>';
-
-                // Findings badge
-                let findingsBadge = '<span class="badge-ok"><i class="fas fa-check"></i> OK</span>';
-                if(r.no_mayor_permit == 1)
-                    findingsBadge = '<span class="badge-no-permit"><i class="fas fa-times"></i> No Permit</span>';
-                else if(r.expired_permit == 1)
-                    findingsBadge = '<span class="badge-expired"><i class="fas fa-clock"></i> Expired</span>';
-
-                html += `<tr>
-                    <td><strong>${r.business_name}</strong></td>
-                    <td>${r.owner_name || "—"}</td>
-                    <td>${r.barangay || "—"}</td>
-                    <td>${r.date_of_inspection || "—"}</td>
-                    <td>${r.type_of_business || "—"}</td>
-                    <td>${statusBadge}</td>
-                    <td>${findingsBadge}</td>
-                    <td style="white-space:nowrap">
-                        <button class="tbl-btn tbl-btn-view" title="View & Print" onclick="viewInspection(${r.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="tbl-btn tbl-btn-edit" title="Edit" onclick="editInspection(${r.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="tbl-btn tbl-btn-delete" title="Delete" onclick="deleteInspection(${r.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>`;
-            });
-        }
-        $("#inspectionTable").html(html);
+        allInspectionRows = JSON.parse(data);
+        currentPage = 1;
+        renderInspectionPage();
     });
+}
+
+function renderInspectionPage(){
+    let rows       = allInspectionRows;
+    let total      = rows.length;
+    let totalPages = Math.ceil(total / ROWS_PER_PAGE);
+    let start      = (currentPage - 1) * ROWS_PER_PAGE;
+    let end        = Math.min(start + ROWS_PER_PAGE, total);
+    let html       = "";
+
+    if(!total){
+        html = `<tr><td colspan="8" class="table-empty">
+            <i class="fas fa-search"></i>
+            <span>No inspection records found</span>
+        </td></tr>`;
+    } else {
+        rows.slice(start, end).forEach(r => {
+            let statusMap = {
+                "Existing":     '<span class="badge-active"><i class="fas fa-circle"></i> Active</span>',
+                "New":          '<span class="badge-new-status"><i class="fas fa-circle"></i> New</span>',
+                "Unregistered": '<span class="badge-unregistered"><i class="fas fa-circle"></i> Unregistered</span>',
+                "Closed":       '<span class="badge-closed"><i class="fas fa-circle"></i> Closed</span>',
+                "Transferred":  '<span class="badge-transferred"><i class="fas fa-circle"></i> Transferred</span>',
+            };
+            let statusBadge = statusMap[r.operation_status] || '<span class="badge-active"><i class="fas fa-circle"></i> Active</span>';
+
+            let findingsBadge = '<span class="badge-ok"><i class="fas fa-check"></i> OK</span>';
+            if(r.no_mayor_permit == 1)
+                findingsBadge = '<span class="badge-no-permit"><i class="fas fa-times"></i> No Permit</span>';
+            else if(r.expired_permit == 1)
+                findingsBadge = '<span class="badge-expired"><i class="fas fa-clock"></i> Expired</span>';
+
+            html += `<tr>
+                <td><strong>${r.business_name}</strong></td>
+                <td>${r.owner_name || "—"}</td>
+                <td>${r.barangay || "—"}</td>
+                <td>${r.date_of_inspection || "—"}</td>
+                <td>${r.type_of_business || "—"}</td>
+                <td>${statusBadge}</td>
+                <td>${findingsBadge}</td>
+                <td style="white-space:nowrap">
+                    <button class="tbl-btn tbl-btn-view" title="View & Print" onclick="viewInspection(${r.id})"><i class="fas fa-eye"></i></button>
+                    <button class="tbl-btn tbl-btn-edit" title="Edit" onclick="editInspection(${r.id})"><i class="fas fa-edit"></i></button>
+                    <button class="tbl-btn tbl-btn-delete" title="Delete" onclick="deleteInspection(${r.id})"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+    }
+
+    $("#inspectionTable").html(html);
+    renderInspectionPagination(total, totalPages);
+}
+
+function renderInspectionPagination(total, totalPages){
+    let wrap = document.getElementById("inspectionPaginationWrap");
+    if(!wrap) return;
+
+    if(totalPages <= 1){
+        wrap.style.display = "none";
+        return;
+    }
+
+    wrap.style.display = "flex";
+
+    let start = (currentPage - 1) * ROWS_PER_PAGE + 1;
+    let end   = Math.min(currentPage * ROWS_PER_PAGE, total);
+    document.getElementById("inspectionPageInfo").textContent = `Showing ${start}–${end} of ${total}`;
+
+    document.getElementById("inspectionPrevBtn").disabled = currentPage <= 1;
+    document.getElementById("inspectionNextBtn").disabled = currentPage >= totalPages;
+
+    let nums = "";
+    for(let i = 1; i <= totalPages; i++){
+        if(i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)){
+            nums += `<button class="page-num ${i === currentPage ? "active" : ""}" onclick="goInspectionPage(${i})">${i}</button>`;
+        } else if(i === currentPage - 3 || i === currentPage + 3){
+            nums += `<span class="page-ellipsis">…</span>`;
+        }
+    }
+    document.getElementById("inspectionPageNumbers").innerHTML = nums;
+}
+
+function goInspectionPage(page){
+    currentPage = page;
+    renderInspectionPage();
+    window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function changeInspectionPage(dir){
+    let totalPages = Math.ceil(allInspectionRows.length / ROWS_PER_PAGE);
+    currentPage = Math.max(1, Math.min(currentPage + dir, totalPages));
+    renderInspectionPage();
+    window.scrollTo({top:0, behavior:"smooth"});
 }
 
 function loadBusinessOptions(){
@@ -73,46 +122,36 @@ function loadBusinessOptions(){
         });
         $("#selectBusiness").html(html);
 
-        // Initialize Select2
-        $("#selectBusiness").select2({
-            placeholder: "Type to search business...",
-            allowClear: true,
-            width: "100%",
-            dropdownParent: $("#addInspectionModal"),
-            language: {
-                noResults: function(){
-                    return "No business found";
-                },
-                searching: function(){
-                    return "Searching...";
+        if($("#selectBusiness").length){
+            $("#selectBusiness").select2({
+                placeholder: "Type to search business...",
+                allowClear: true,
+                width: "100%",
+                dropdownParent: $("#addInspectionModal"),
+                language: {
+                    noResults: function(){ return "No business found"; },
+                    searching: function(){ return "Searching..."; }
                 }
-            }
-        });
+            });
+        }
     });
 }
 
-// Auto-fill owner and barangay on business select (Select2)
-$(document).on("select2:select", "#selectBusiness", function(e){
+$(document).on("select2:select", "#selectBusiness", function(){
     let selected = $(this).find(":selected");
-    let id = $(this).val();
-    $("#inspection_business_id").val(id);
+    $("#inspection_business_id").val($(this).val());
     $("#business_name").val(selected.data("name"));
     $("#owner_name").val(selected.data("owner"));
     $("#barangay").val(selected.data("barangay"));
 });
 
-// Clear fields when selection is cleared
 $(document).on("select2:clear", "#selectBusiness", function(){
-    $("#inspection_business_id").val("");
-    $("#business_name").val("");
-    $("#owner_name").val("");
-    $("#barangay").val("");
+    $("#inspection_business_id, #business_name, #owner_name, #barangay").val("");
 });
 
 function openAddModal(){
     $("#inspectionForm")[0].reset();
     $("#inspection_id").val("");
-    // Reset Select2
     if($("#selectBusiness").hasClass("select2-hidden-accessible")){
         $("#selectBusiness").val("").trigger("change");
     }
@@ -127,7 +166,6 @@ function viewInspection(id){
 function editInspection(id){
     $.get("php/get/get_single_inspection.php?id=" + id, function(data){
         let r = JSON.parse(data);
-
         $("#inspection_id").val(r.id);
         $("input[name=date_of_inspection]").val(r.date_of_inspection);
         $("input[name=time_of_inspection]").val(r.time_of_inspection);
@@ -173,7 +211,6 @@ function editInspection(id){
         $("textarea[name=action_remarks]").val(r.action_remarks);
         $("input[name=inspector_name]").val(r.inspector_name);
         $("input[name=date_signed]").val(r.date_signed);
-
         $("#inspectionForm").attr("action", "php/update/update_inspection.php");
         new bootstrap.Modal(document.getElementById("addInspectionModal")).show();
     });

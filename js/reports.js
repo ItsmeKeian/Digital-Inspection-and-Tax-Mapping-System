@@ -1,15 +1,13 @@
+const ROWS_PER_PAGE = 7;
+let currentPage = 1;
+let allReportRows = [];
+let currentChartData = null;
+
 $(document).ready(function(){
     loadReports();
 
-    // Live search
-    $("#searchReports").on("keyup", function(){
-        loadReports();
-    });
-
-    // Filter changes
-    $("#filterBarangay, #filterStatus, #fromDate, #toDate").on("change", function(){
-        loadReports();
-    });
+    $("#searchReports").on("keyup", function(){ loadReports(); });
+    $("#filterBarangay, #filterStatus, #fromDate, #toDate").on("change", function(){ loadReports(); });
 });
 
 let lineChart, pieChart;
@@ -23,66 +21,102 @@ function loadReports(){
         search:   $("#searchReports").val()
     }, function(data){
         let d = JSON.parse(data);
-        renderTable(d.rows);
+        allReportRows      = d.rows;
+        currentChartData   = d;
+        currentPage        = 1;
+        renderReportPage();
         renderCharts(d);
-        $("#resultCount").text(d.rows.length + " record(s) found");
     });
 }
 
-/* ── TABLE ── */
-function renderTable(rows){
-    let html = "";
+function renderReportPage(){
+    let rows       = allReportRows;
+    let total      = rows.length;
+    let totalPages = Math.ceil(total / ROWS_PER_PAGE);
+    let start      = (currentPage - 1) * ROWS_PER_PAGE;
+    let end        = Math.min(start + ROWS_PER_PAGE, total);
+    let html       = "";
 
-    if(!rows || rows.length === 0){
+    if(!total){
         html = `<tr><td colspan="6" class="table-empty">
             <i class="fas fa-chart-bar"></i>
             <span>No records found for the selected filters</span>
         </td></tr>`;
-        $("#reportTableBody").html(html);
+    } else {
+        rows.slice(start, end).forEach(r => {
+            let statusBadge = getStatusBadge(r.status);
+            let noticeBtn   = "";
+            if(r.status === "Violation"){
+                noticeBtn = `<a class="btn-notice-violation"
+                    href="php/view/notice_of_violation.php?id=${r.id}"
+                    target="_blank" title="Generate Notice of Violation">
+                    <i class="fas fa-file-alt"></i> Notice
+                </a>`;
+            }
+
+            html += `<tr>
+                <td><strong>${r.business_name}</strong></td>
+                <td>${r.owner_name || "—"}</td>
+                <td><i class="fas fa-map-pin" style="color:#C8960C;margin-right:4px"></i>${r.barangay || "—"}</td>
+                <td>${r.date_of_inspection || "—"}</td>
+                <td>${statusBadge}</td>
+                <td style="white-space:nowrap">
+                    <button class="tbl-btn tbl-btn-view" title="View" onclick="viewReport(${r.id})"><i class="fas fa-eye"></i></button>
+                    <button class="tbl-btn tbl-btn-edit" title="Edit" onclick="editReport(${r.id})"><i class="fas fa-edit"></i></button>
+                    <button class="tbl-btn tbl-btn-delete" title="Delete" onclick="deleteReport(${r.id})"><i class="fas fa-trash"></i></button>
+                    ${noticeBtn}
+                </td>
+            </tr>`;
+        });
+    }
+
+    $("#reportTableBody").html(html);
+    $("#resultCount").text(total + " record(s) found");
+    renderReportPagination(total, totalPages);
+}
+
+function renderReportPagination(total, totalPages){
+    let wrap = document.getElementById("reportPaginationWrap");
+    if(!wrap) return;
+
+    if(totalPages <= 1){
+        wrap.style.display = "none";
         return;
     }
 
-    rows.forEach(r => {
-        let statusBadge = getStatusBadge(r.status);
+    wrap.style.display = "flex";
 
-        // Notice of Violation button — only for Violation status
-        let noticeBtn = "";
-        if(r.status === "Violation"){
-            noticeBtn = `<a class="btn-notice-violation"
-                href="php/view/notice_of_violation.php?id=${r.id}"
-                target="_blank" title="Generate Notice of Violation">
-                <i class="fas fa-file-alt"></i> Notice
-            </a>`;
+    let start = (currentPage - 1) * ROWS_PER_PAGE + 1;
+    let end   = Math.min(currentPage * ROWS_PER_PAGE, total);
+    document.getElementById("reportPageInfo").textContent = `Showing ${start}–${end} of ${total}`;
+
+    document.getElementById("reportPrevBtn").disabled = currentPage <= 1;
+    document.getElementById("reportNextBtn").disabled = currentPage >= totalPages;
+
+    let nums = "";
+    for(let i = 1; i <= totalPages; i++){
+        if(i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)){
+            nums += `<button class="page-num ${i === currentPage ? "active" : ""}" onclick="goReportPage(${i})">${i}</button>`;
+        } else if(i === currentPage - 3 || i === currentPage + 3){
+            nums += `<span class="page-ellipsis">…</span>`;
         }
-
-        html += `<tr>
-            <td><strong>${r.business_name}</strong></td>
-            <td>${r.owner_name || "—"}</td>
-            <td><i class="fas fa-map-pin" style="color:#C8960C;margin-right:4px"></i>${r.barangay || "—"}</td>
-            <td>${r.date_of_inspection || "—"}</td>
-            <td>${statusBadge}</td>
-            <td style="white-space:nowrap">
-                <button class="tbl-btn tbl-btn-view" title="View"
-                    onclick="viewReport(${r.id})">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="tbl-btn tbl-btn-edit" title="Edit"
-                    onclick="editReport(${r.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="tbl-btn tbl-btn-delete" title="Delete"
-                    onclick="deleteReport(${r.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-                ${noticeBtn}
-            </td>
-        </tr>`;
-    });
-
-    $("#reportTableBody").html(html);
+    }
+    document.getElementById("reportPageNumbers").innerHTML = nums;
 }
 
-/* ── STATUS BADGE ── */
+function goReportPage(page){
+    currentPage = page;
+    renderReportPage();
+    window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function changeReportPage(dir){
+    let totalPages = Math.ceil(allReportRows.length / ROWS_PER_PAGE);
+    currentPage = Math.max(1, Math.min(currentPage + dir, totalPages));
+    renderReportPage();
+    window.scrollTo({top:0, behavior:"smooth"});
+}
+
 function getStatusBadge(status){
     if(status === "Inspected")
         return '<span class="badge-report-inspected"><i class="fas fa-check-circle"></i> Inspected</span>';
@@ -93,12 +127,10 @@ function getStatusBadge(status){
     return '<span class="badge-report-pending">—</span>';
 }
 
-/* ── CHARTS ── */
 function renderCharts(d){
     if(lineChart) lineChart.destroy();
     if(pieChart)  pieChart.destroy();
 
-    // Line chart
     lineChart = new Chart(document.getElementById("reportLineChart"), {
         type: "line",
         data: {
@@ -139,20 +171,12 @@ function renderCharts(d){
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: "#F3F4F6", drawBorder: false },
-                    ticks: { color: "#9CA3AF", font: { size: 11 } }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: "#9CA3AF", font: { size: 11 } }
-                }
+                y: { beginAtZero: true, grid: { color: "#F3F4F6" }, ticks: { color: "#9CA3AF", font: { size: 11 } } },
+                x: { grid: { display: false }, ticks: { color: "#9CA3AF", font: { size: 11 } } }
             }
         }
     });
 
-    // Doughnut chart
     pieChart = new Chart(document.getElementById("reportPieChart"), {
         type: "doughnut",
         data: {
@@ -169,12 +193,7 @@ function renderCharts(d){
             plugins: {
                 legend: {
                     position: "bottom",
-                    labels: {
-                        font: { size: 12 },
-                        padding: 14,
-                        usePointStyle: true,
-                        color: "#6B7280"
-                    }
+                    labels: { font: { size: 12 }, padding: 14, usePointStyle: true, color: "#6B7280" }
                 },
                 tooltip: {
                     backgroundColor: "#1C1400",
@@ -189,7 +208,6 @@ function renderCharts(d){
     });
 }
 
-/* ── ACTIONS ── */
 function viewReport(id){
     window.open("php/view/view_inspection.php?id=" + id, "_blank");
 }

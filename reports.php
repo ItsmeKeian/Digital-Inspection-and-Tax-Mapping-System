@@ -234,6 +234,20 @@ try {
         </div>
     </div>
 
+    <!-- Pagination -->
+    <div class="pagination-wrap" id="reportPaginationWrap" style="display:none">
+        <div style="font-size:13px;color:#6B7280" id="reportPageInfo"></div>
+        <div class="pagination-btns">
+            <button class="page-btn" id="reportPrevBtn" onclick="changeReportPage(-1)">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div class="page-numbers" id="reportPageNumbers"></div>
+            <button class="page-btn" id="reportNextBtn" onclick="changeReportPage(1)">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
 </main>
 
 <script src="assets/js/jquery-4.0.0.min.js"></script>

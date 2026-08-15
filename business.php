@@ -198,6 +198,20 @@ try {
         </div>
     </div>
 
+    <!-- Pagination -->
+    <div class="pagination-wrap" id="businessPaginationWrap" style="display:none">
+        <div style="font-size:13px;color:#6B7280" id="businessPageInfo"></div>
+        <div class="pagination-btns">
+            <button class="page-btn" id="businessPrevBtn" onclick="changeBusinessPage(-1)">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div class="page-numbers" id="businessPageNumbers"></div>
+            <button class="page-btn" id="businessNextBtn" onclick="changeBusinessPage(1)">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
 </main>
 
 <!-- ── ADD BUSINESS MODAL ── -->

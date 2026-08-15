@@ -202,6 +202,20 @@ try {
         </div>
     </div>
 
+    <!-- Pagination -->
+    <div class="pagination-wrap" id="inspectionPaginationWrap" style="display:none">
+        <div style="font-size:13px;color:#6B7280" id="inspectionPageInfo"></div>
+        <div class="pagination-btns">
+            <button class="page-btn" id="inspectionPrevBtn" onclick="changeInspectionPage(-1)">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div class="page-numbers" id="inspectionPageNumbers"></div>
+            <button class="page-btn" id="inspectionNextBtn" onclick="changeInspectionPage(1)">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
 </main>
 
 <!-- ── ADD / EDIT INSPECTION MODAL ── -->
@@ -515,6 +529,14 @@ try {
         $("#filterDate").val("");
         loadInspections();
     });
+
+    // Pagination CSS (shared with business)
+    if(!document.getElementById("paginationStyle")){
+        let style = document.createElement("style");
+        style.id = "paginationStyle";
+        style.textContent = ".pagination-wrap{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;flex-wrap:wrap;gap:10px}.pagination-btns{display:flex;align-items:center;gap:6px}.page-btn{height:36px;padding:0 14px;border:1px solid #E5E7EB;border-radius:8px;background:#fff;color:#374151;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}.page-btn:hover:not(:disabled){border-color:#C8960C;color:#C8960C;background:#FDF6E3}.page-btn:disabled{opacity:.4;cursor:not-allowed}.page-numbers{display:flex;align-items:center;gap:4px}.page-num{width:34px;height:34px;border:1px solid #E5E7EB;border-radius:7px;background:#fff;color:#374151;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}.page-num:hover{border-color:#C8960C;color:#C8960C;background:#FDF6E3}.page-num.active{background:#C8960C;border-color:#C8960C;color:#fff}.page-ellipsis{font-size:13px;color:#9CA3AF;padding:0 4px}";
+        document.head.appendChild(style);
+    }
 </script>
 </body>
 </html>
