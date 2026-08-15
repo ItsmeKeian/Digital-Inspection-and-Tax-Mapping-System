@@ -1,0 +1,73 @@
+/* ── FORM SECTION TITLE ── */
+.form-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1C1400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.6rem 0.75rem;
+    background: #FDF6E3;
+    border-left: 3px solid #C8960C;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 1rem;
+    margin-top: 0.25rem;
+}
+
+/* ── CHECKBOX GROUP ── */
+.check-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    padding: 7px 12px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.check-item:hover {
+    border-color: #C8960C;
+    background: #FDF6E3;
+}
+
+.check-item input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #C8960C;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.check-item input[type="checkbox"]:checked + span {
+    color: #1C1400;
+    font-weight: 600;
+}
+
+/* ── STATUS BADGES (inspections) ── */
+.badge-active       { background:#D1FAE5; color:#065F46; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+.badge-new-status   { background:#DBEAFE; color:#1E40AF; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+.badge-unregistered { background:#FEE2E2; color:#991B1B; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+.badge-closed       { background:#F3F4F6; color:#6B7280; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+.badge-transferred  { background:#FEF3C7; color:#92400E; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+
+/* ── FINDINGS BADGES ── */
+.badge-ok           { background:#D1FAE5; color:#065F46; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+.badge-no-permit    { background:#FEE2E2; color:#991B1B; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+.badge-expired      { background:#FEF3C7; color:#92400E; display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:50px; font-size:12px; font-weight:600; }
+
+/* ── TEXTAREA modern ── */
+textarea.form-control-modern {
+    height: 80px;
+    resize: vertical;
+    padding: 8px 12px;
+}
