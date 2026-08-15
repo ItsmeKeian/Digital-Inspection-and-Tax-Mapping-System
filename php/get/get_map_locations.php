@@ -3,11 +3,11 @@
 require "../dbconnect.php";
 
 $barangay = $_GET["barangay"] ?? "";
-$status = $_GET["status"] ?? "";
-$search = $_GET["search"] ?? "";
+$status   = $_GET["status"]   ?? "";
+$search   = $_GET["search"]   ?? "";
 
+// Get latest inspection per business
 $sql = "
-
 SELECT 
     b.id,
     b.business_name,
@@ -15,31 +15,38 @@ SELECT
     b.barangay,
     b.latitude,
     b.longitude,
-
-    i.operation_status
+    latest.operation_status
 
 FROM businesses b
 
-LEFT JOIN inspections i 
-    ON b.id = i.business_id
+LEFT JOIN (
+    SELECT business_id, operation_status
+    FROM inspections
+    WHERE id IN (
+        SELECT MAX(id) FROM inspections GROUP BY business_id
+    )
+) AS latest ON b.id = latest.business_id
 
 WHERE b.latitude IS NOT NULL
 AND b.longitude IS NOT NULL
-
+AND b.latitude != ''
+AND b.longitude != ''
 ";
 
 $params = [];
 
-if ($barangay != "") {
+if(!empty($barangay)){
     $sql .= " AND b.barangay = ?";
     $params[] = $barangay;
 }
 
-if ($search != "") {
-    $sql .= " AND (
-        b.business_name LIKE ?
-        OR b.owner_name LIKE ?
-    )";
+if(!empty($status)){
+    $sql .= " AND latest.operation_status = ?";
+    $params[] = $status;
+}
+
+if(!empty($search)){
+    $sql .= " AND (b.business_name LIKE ? OR b.owner_name LIKE ?)";
     $params[] = "%$search%";
     $params[] = "%$search%";
 }
@@ -47,6 +54,4 @@ if ($search != "") {
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 
-echo json_encode(
-    $stmt->fetchAll(PDO::FETCH_ASSOC)
-);
+echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));

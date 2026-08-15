@@ -1,76 +1,281 @@
-
-.legend div {
-    font-size:12px;
-    margin-bottom:4px;
+/* ── MAP LAYOUT ── */
+.map-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1rem;
+    height: calc(100vh - 180px);
+    min-height: 500px;
 }
 
-.box {
-    display:inline-block;
-    width:12px;
-    height:12px;
-    margin-right:5px;
+/* ── LEFT PANEL ── */
+.map-panel {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
 }
 
-.green { background:#28a745; }
-.red { background:#dc3545; }
-.blue { background:#007bff; }
-.gray { background:#6c757d; }
-.orange { background:#fd7e14; }
+.map-panel-section {
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid #F3F4F6;
+}
 
+.map-panel-section:last-child {
+    border-bottom: none;
+}
 
-
-.leaflet-tooltip.custom-label {
-    padding: 3px 6px;
+.map-panel-label {
     font-size: 11px;
-    font-weight: bold;
-    border-radius: 4px;
-    border: 2px solid black;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
+.map-panel-label i { color: #C8960C; font-size: 12px; }
 
-/* COLORS */
-
-.leaflet-tooltip.label-green {
-    background: #28a745;
-    border-color: #1e7e34;
-    color: white;
+.map-field-label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #6B7280;
+    margin-bottom: 5px;
 }
 
-.leaflet-tooltip.label-blue {
-    background: #007bff;
-    border-color: #0056b3;
-    color: white;
+.map-select {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #374151;
+    background: #F9FAFB;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    appearance: auto;
 }
 
-.leaflet-tooltip.label-red {
-    background: #dc3545;
-    border-color: #a71d2a;
-    color: white;
+.map-select:focus {
+    border-color: #C8960C;
+    box-shadow: 0 0 0 3px rgba(200,150,12,0.1);
 }
 
-.leaflet-tooltip.label-orange {
-    background: #fd7e14;
-    border-color: #c05600;
-    color: white;
+.map-search-wrap {
+    position: relative;
 }
 
-.leaflet-tooltip.label-gray {
-    background: #6c757d;
-    border-color: #343a40;
-    color: white;
+.map-search-wrap i {
+    position: absolute;
+    left: 11px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: #9CA3AF;
+    pointer-events: none;
 }
 
+.map-search-wrap input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0 12px 0 34px;
+    font-size: 13px;
+    color: #374151;
+    background: #F9FAFB;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
 
-/* building icon */
+.map-search-wrap input:focus {
+    border-color: #C8960C;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(200,150,12,0.1);
+}
 
-.business-icon {
+.map-search-wrap input::placeholder { color: #C4C4C4; }
 
-    width:35px;
-    height:35px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+/* ── LEGEND ── */
+.legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-    font-size:18px;
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
 
+.legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.8);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Pin shape for legend */
+.legend-pin {
+    width: 14px;
+    height: 18px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    margin-right: 2px;
+}
+
+/* ── SUMMARY ── */
+.map-stat-box {
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.map-stat-label {
+    font-size: 12px;
+    color: #6B7280;
+}
+
+.map-stat-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1C1400;
+}
+
+/* ── MAP CONTAINER ── */
+.map-container {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* ── LEAFLET TOOLTIP CUSTOM ── */
+.leaflet-tooltip-ditms {
+    background: #1C1400;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    white-space: nowrap;
+}
+
+.leaflet-tooltip-ditms::before {
+    border-top-color: #1C1400;
+}
+
+/* ── LEAFLET POPUP ── */
+.leaflet-popup-content-wrapper {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+    padding: 0 !important;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    font-family: 'Segoe UI', sans-serif !important;
+    font-size: 13px !important;
+    min-width: 160px;
+}
+
+.popup-name {
+    font-weight: 700;
+    color: #1C1400;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+}
+
+.popup-row {
+    font-size: 12px;
+    color: #6B7280;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.popup-row i { color: #C8960C; font-size: 11px; }
+
+.popup-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 3px 8px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ── PAGE HEADER (reuse) ── */
+.page-header-wrap {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-title h2 { font-size: 20px; font-weight: 700; color: #1C1400; }
+.page-title p  { font-size: 13px; color: #6B7280; margin-top: 2px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .map-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .map-container { height: 400px; }
+}
+
+/* ── LEGEND PILL ── */
+.legend-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    border: 1.5px solid rgba(255,255,255,0.3);
+}
+
+/* ── LEGEND CIRCLE (Google Maps style) ── */
+.legend-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2.5px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    flex-shrink: 0;
 }
