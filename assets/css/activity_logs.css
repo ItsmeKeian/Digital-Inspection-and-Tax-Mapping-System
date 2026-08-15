@@ -1,0 +1,147 @@
+/* ── REUSE MI STAT CARD ── */
+.mi-stat-card {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mi-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.mi-stat-icon {
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.mi-stat-icon i { font-size: 22px; color: #fff; }
+
+.mi-stat-val {
+    font-size: 28px; font-weight: 800;
+    color: #1C1400; line-height: 1;
+    letter-spacing: -0.5px;
+}
+
+.mi-stat-label {
+    font-size: 12px; color: #6B7280;
+    margin-top: 3px; font-weight: 500;
+}
+
+/* ── LOG AVATAR ── */
+.log-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C8960C, #F5C518);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    color: #1C1400;
+    flex-shrink: 0;
+}
+
+/* ── ACTION BADGE ── */
+.action-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+/* ── REPORTS TABLE HEADER (reuse) ── */
+.reports-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1rem;
+    border-bottom: 2px solid #F3F4F6;
+    background: #FAFAFA;
+    border-radius: 14px 14px 0 0;
+}
+
+/* ── PAGINATION ── */
+.pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pagination-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.page-btn {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: #C8960C;
+    color: #C8960C;
+    background: #FDF6E3;
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.page-num {
+    width: 34px; height: 34px;
+    border: 1px solid #E5E7EB;
+    border-radius: 7px;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.page-num:hover { border-color: #C8960C; color: #C8960C; background: #FDF6E3; }
+
+.page-num.active {
+    background: #C8960C;
+    border-color: #C8960C;
+    color: #fff;
+}
+
+.page-ellipsis {
+    font-size: 13px;
+    color: #9CA3AF;
+    padding: 0 4px;
+}
