@@ -117,7 +117,15 @@ function changeBusinessPage(dir){
 }
 
 function viewBusiness(id){
-    window.open("php/view/view_inspection.php?business_id=" + id, "_blank");
+    // Get latest inspection of this business then open it
+    $.get("php/get/get_latest_inspection.php", { business_id: id }, function(data){
+        let d = JSON.parse(data);
+        if(d.id){
+            window.open("php/view/view_inspection.php?id=" + d.id, "_blank");
+        } else {
+            alert("No inspection record found for this business yet.");
+        }
+    });
 }
 
 function deleteBusiness(id){
