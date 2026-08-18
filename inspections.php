@@ -220,7 +220,7 @@ try {
 
 <!-- ── ADD / EDIT INSPECTION MODAL ── -->
 <div class="modal fade" id="addInspectionModal" tabindex="-1">
-<div class="modal-dialog modal-xl">
+<div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width:1100px">
 <div class="modal-content">
     <div class="modal-header">
         <div>
@@ -359,6 +359,8 @@ try {
                     <option>Unregistered</option><option>Closed</option><option>Transferred</option>
                 </select>
             </div>
+        </div>
+        <div class="row g-3 mb-3">
             <div class="col-md-4">
                 <label class="form-label-modern">Floor Area (sqm)</label>
                 <input type="text" name="floor_area" class="form-control-modern" placeholder="Floor area">
@@ -500,6 +502,14 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="js/inspections.js"></script>
 <script>
+    // Fix modal scroll — prevent Select2 and other elements from hijacking wheel scroll
+    document.getElementById("addInspectionModal").addEventListener("shown.bs.modal", function(){
+        var modalBody = this.querySelector(".modal-body");
+        modalBody.addEventListener("wheel", function(e){
+            e.stopPropagation();
+        }, { passive: true });
+    });
+
     document.getElementById("sidebarToggle").addEventListener("click", function(){
         document.getElementById("sidebar").classList.toggle("open");
     });

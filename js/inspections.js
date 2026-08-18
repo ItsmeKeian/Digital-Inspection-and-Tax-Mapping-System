@@ -127,13 +127,18 @@ function loadBusinessOptions(){
                 placeholder: "Type to search business...",
                 allowClear: true,
                 width: "100%",
-                dropdownParent: $("#addInspectionModal"),
+                dropdownParent: $("#addInspectionModal .modal-body"),
                 language: {
                     noResults: function(){ return "No business found"; },
                     searching: function(){ return "Searching..."; }
                 }
             });
         }
+
+        // Fix: allow modal body to scroll normally even when Select2 is present
+        $("#addInspectionModal .modal-body").on("scroll", function(e){
+            e.stopPropagation();
+        });
     });
 }
 
